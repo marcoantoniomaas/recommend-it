@@ -8,7 +8,7 @@ class CategoryRepository:
     def __init__(self, db: Session) -> None:
         self.db = db
 
-    def list(self) -> list[Category]:
+    def list_all(self) -> list[Category]:
         return list(self.db.scalars(select(Category).order_by(Category.name)))
 
     def get(self, category_id: int) -> Category | None:

@@ -187,10 +187,10 @@ def upgrade() -> None:
             )
 
 
-def downgrade() -> None:
-    conn = op.get_bind()
-    conn.execute(sa.text("DELETE FROM recommendation_tags"))
-    conn.execute(sa.text("DELETE FROM links"))
-    conn.execute(sa.text("DELETE FROM recommendations"))
-    conn.execute(sa.text("DELETE FROM tags"))
-    conn.execute(sa.text("DELETE FROM categories"))
+#def downgrade() -> None:
+#    conn = op.get_bind()
+#    conn.execute(sa.text("DELETE FROM recommendation_tags"))
+#    conn.execute(sa.text("DELETE FROM links"))
+#    conn.execute(sa.text("DELETE FROM recommendations"))
+#    conn.execute(sa.text("DELETE FROM tags"))
+#    conn.execute(sa.text("DELETE FROM categories"))

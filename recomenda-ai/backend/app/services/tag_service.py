@@ -8,5 +8,5 @@ class TagService:
     def __init__(self, db: Session) -> None:
         self.repository = TagRepository(db)
 
-    def list(self) -> list[Tag]:
-        return self.repository.list()
+    def list_all(self) -> list[Tag]:
+        return self.repository.list_all()

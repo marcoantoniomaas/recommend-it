@@ -9,7 +9,7 @@ router = APIRouter(prefix="/categories", tags=["categories"])
 
 @router.get("", response_model=list[CategoryRead], summary="Listar categorias")
 def list_categories(db: DbSession) -> list[CategoryRead]:
-    return CategoryService(db).list()
+    return CategoryService(db).list_all()
 
 
 @router.post(

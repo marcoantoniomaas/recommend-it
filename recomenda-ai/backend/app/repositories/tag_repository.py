@@ -9,7 +9,7 @@ class TagRepository:
     def __init__(self, db: Session) -> None:
         self.db = db
 
-    def list(self) -> list[Tag]:
+    def list_all(self) -> list[Tag]:
         return list(self.db.scalars(select(Tag).order_by(Tag.name)))
 
     def get_or_create_many(self, names: list[str]) -> list[Tag]:
