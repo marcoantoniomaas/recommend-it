@@ -1,126 +1,87 @@
-# Recommend It
+# Recomenda Aí
 
-Sistema simples para organizar e compartilhar recomendações de filmes, séries, livros, jogos, restaurantes e qualquer outro tipo de conteúdo.
+MVP para organizar as recomendações que hoje se perdem no grupo do WhatsApp.
 
-## Tecnologias
+## Stack
 
-### Backend
-- Python 3.12
-- FastAPI
-- SQLAlchemy
-- PostgreSQL
-- Alembic
+| Camada  | Tecnologias |
+| ------- | ----------- |
+| Frontend | React 18, TypeScript, Vite, React Router, TanStack Query, Tailwind CSS, shadcn/ui |
+| Backend  | FastAPI, SQLAlchemy 2, Alembic, Pydantic v2 |
+| Banco    | PostgreSQL 16 |
+| Arquivos | MinIO (S3 compatível) |
 
-### Frontend
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-
-### Infraestrutura
-- Docker
-- Docker Compose
-- PostgreSQL
-- MinIO (armazenamento de imagens)
-
----
-
-## Estrutura do projeto
-
-```text
-.
-├── backend/      # API FastAPI
-├── frontend/     # Interface React
-├── docker/       # Arquivos de infraestrutura (opcional)
-├── docker-compose.yml
-└── README.md
-```
-
----
-
-## Funcionalidades
-
-- Cadastro de recomendações
-- Categorias
-- Tags
-- Upload de imagens
-- Busca por recomendações
-- Interface web responsiva
-
----
-
-## Executando o projeto
-
-### Pré-requisitos
-
-- Docker
-- Docker Compose
-
-### Subir o ambiente
+## Como rodar
 
 ```bash
 docker compose up --build
 ```
 
-Aplicações disponíveis:
-
 | Serviço | URL |
-|----------|-----|
+| ------- | --- |
 | Frontend | http://localhost:5173 |
-| Backend | http://localhost:8000 |
+| API | http://localhost:8000 |
 | Swagger | http://localhost:8000/docs |
-| MinIO | http://localhost:9001 |
+| ReDoc | http://localhost:8000/redoc |
+| MinIO Console | http://localhost:9001 (minioadmin / minioadmin) |
 
----
+As migrations do Alembic rodam automaticamente na subida do backend, criando o schema e o seed
+(9 categorias + 10 recomendações de exemplo).
 
-## Desenvolvimento
-
-Reconstruir as imagens:
-
-```bash
-docker compose build --no-cache
-docker compose up
-```
-
-Parar o ambiente:
+## Migrations
 
 ```bash
-docker compose down
+docker compose exec backend alembic upgrade head
+docker compose exec backend alembic downgrade -1
+docker compose exec backend alembic revision --autogenerate -m "mensagem"
 ```
 
----
+## Estrutura
 
-## Banco de dados
-
-As migrações são gerenciadas com Alembic.
-
-Criar uma nova migration:
-
-```bash
-alembic revision --autogenerate -m "Descrição"
+```text
+backend/
+  alembic/            migrations (0001 schema, 0002 seed)
+  app/
+    api/              rotas HTTP (v1) e dependências
+    core/             config e utilidades
+    database/         engine, sessão e Base declarativa
+    models/           entidades SQLAlchemy
+    repositories/     acesso a dados
+    schemas/          contratos Pydantic
+    services/         regras de negócio + storage MinIO
+frontend/
+  src/
+    components/       UI compartilhada (+ ui/ do shadcn)
+    hooks/            hooks de dados (TanStack Query)
+    pages/            telas
+    services/         cliente HTTP
+    types/            contratos TypeScript
 ```
 
-Aplicar migrations:
+## Modelo de dados
 
-```bash
-alembic upgrade head
-```
+- `categories` — nome, slug, ícone
+- `recommendations` — título, descrição, quem recomendou, capa, categoria, datas
+- `links` — N links por recomendação (IMDb, Steam, Spotify, Maps, YouTube...)
+- `tags` + `recommendation_tags` — relacionamento N:N
 
----
+## Telas
 
-## Roadmap
+Home (busca + categorias + últimas), Lista de categorias, Categoria, Detalhes, Nova e Editar.
 
-- [ ] Autenticação de usuários
-- [ ] Favoritos
-- [ ] Compartilhamento de listas
-- [ ] Busca avançada
-- [ ] Avaliações
-- [ ] Comentários
-- [ ] Dashboard
-- [ ] API pública
+## Busca
 
----
+`GET /api/v1/recommendations?search=termo&category=filmes` pesquisa por título, categoria,
+tags e quem recomendou.
 
-## Licença
+## Preparado para evoluir (não implementado)
 
-Projeto desenvolvido para fins de estudo e uso pessoal.
+O código isola regras em `services/` e acesso a dados em `repositories/`, então os próximos
+módulos entram sem reescrita:
+
+- **Autenticação** — `app/api/deps.py` já reserva o ponto do `CurrentUser`; basta adicionar
+  `user_id` em `recommendations` e proteger as rotas de escrita.
+- **Avaliações / comentários / favoritos** — novas tabelas com FK para `recommendations`,
+  novos repositórios e serviços, sem tocar no que existe.
+- **Sistema de recomendação** — as tags e categorias já normalizadas servem de base para
+  similaridade.
